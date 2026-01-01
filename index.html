@@ -45,41 +45,60 @@
     <iframe id="viewer" src="CV_EN.pdf" title="CV viewer"></iframe>
   </main>
 
-  <script>
-    (function () {
-      const files = {
-        en: { pdf: "CV_EN.pdf", label: "CV_EN.pdf", btn: "btn-en" },
-        cn: { pdf: "CV_CN.pdf", label: "CV_CN.pdf", btn: "btn-cn" }
-      };
+<script>
+  (function () {
+    const files = {
+      en: { pdf: "CV_EN.pdf", label: "CV_EN.pdf" },
+      cn: { pdf: "CV_CN.pdf", label: "CV_CN.pdf" }
+    };
 
-      const viewer = document.getElementById("viewer");
-      const dl = document.getElementById("dl");
-      const btnEn = document.getElementById("btn-en");
-      const btnCn = document.getElementById("btn-cn");
+    const viewer = document.getElementById("viewer");
+    const dl = document.getElementById("dl");
+    const btnEn = document.getElementById("btn-en");
+    const btnCn = document.getElementById("btn-cn");
 
-      function setActive(lang) {
-        const f = files[lang];
-        // Update iframe (add a cache-buster to avoid stale loads)
-        viewer.src = f.pdf + "?v=" + Date.now();
+    function setActive(lang, replaceUrl = true) {
+      const f = files[lang] || files.en;
 
-        // Update download link text + href
-        dl.href = f.pdf;
-        dl.textContent = f.label;
+      // Update iframe (cache-buster avoids stale loads)
+      viewer.src = f.pdf + "?v=" + Date.now();
 
-        // Toggle button states
-        btnEn.setAttribute("aria-pressed", lang === "en" ? "true" : "false");
-        btnCn.setAttribute("aria-pressed", lang === "cn" ? "true" : "false");
+      // Update download link
+      dl.href = f.pdf;
+      dl.textContent = f.label;
 
-        // Optional: update page title
-        document.title = "CV | " + (lang === "en" ? "English" : "中文");
+      // Toggle button states
+      btnEn.setAttribute("aria-pressed", lang === "en" ? "true" : "false");
+      btnCn.setAttribute("aria-pressed", lang === "cn" ? "true" : "false");
+
+      // Update URL so it becomes shareable
+      if (replaceUrl) {
+        const url = new URL(window.location.href);
+        url.searchParams.set("lang", lang);
+        window.history.replaceState({}, "", url.toString());
       }
 
-      btnEn.addEventListener("click", () => setActive("en"));
-      btnCn.addEventListener("click", () => setActive("cn"));
+      // Optional: update title
+      document.title = "CV | " + (lang === "en" ? "English" : "中文");
+    }
 
-      // Default is English; you can change to "cn" if you prefer
-      setActive("en");
-    })();
-  </script>
+    btnEn.addEventListener("click", () => setActive("en"));
+    btnCn.addEventListener("click", () => setActive("cn"));
+
+    // Read ?lang=en or ?lang=cn
+    const params = new URLSearchParams(window.location.search);
+    const langParam = (params.get("lang") || "").toLowerCase();
+
+    const initial =
+      (langParam === "cn" || langParam === "zh" || langParam === "zh-cn") ? "cn" :
+      (langParam === "en") ? "en" :
+      "en"; // default
+
+    // Do not rewrite URL on initial load if user already provided lang
+    setActive(initial, true);
+  })();
+</script>
 </body>
 </html>
+
+
